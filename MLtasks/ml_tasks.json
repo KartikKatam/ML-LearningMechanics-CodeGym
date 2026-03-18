@@ -839,6 +839,62 @@
             "requirements": {
                 "validation": "AUC/AP reported with deterministic sampling."
             }
+        },
+        {
+            "series": "Vision Transformer",
+            "level": 3,
+            "id": "vit_lvl3_fashionmnist",
+            "algorithm": "Vision Transformer (ViT) Classification",
+            "description": "Implement a Vision Transformer that splits images into patches, applies transformer encoder layers with self-attention, and classifies using a CLS token. Trained on FashionMNIST.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "math": "Patch embedding: flatten 7x7 patches, linear project to embed_dim. Scaled dot-product self-attention with positional embeddings.",
+                "data": "FashionMNIST (28x28 grayscale, 10 classes). Train/val = official train/test split.",
+                "implementation": "nn.TransformerEncoder; AdamW optimizer; CLS token classification head with LayerNorm.",
+                "validation": "Val accuracy > 0.85 on FashionMNIST."
+            }
+        },
+        {
+            "series": "Knowledge Distillation",
+            "level": 3,
+            "id": "kd_lvl3_distillation",
+            "algorithm": "Knowledge Distillation (CNN Teacher to MLP Student)",
+            "description": "Train a large CNN teacher, then distill its knowledge into a smaller MLP student using temperature-scaled soft targets and KL divergence loss.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "math": "Distillation loss: alpha * CE(student, labels) + (1-alpha) * KL(soft_student, soft_teacher) * T^2. Temperature scaling softens logits.",
+                "data": "FashionMNIST. Same split for teacher and both student runs.",
+                "implementation": "TeacherCNN (~800k params) and StudentMLP (~100k params). Fair comparison via seed reset.",
+                "validation": "Teacher acc > 0.88. Distilled student acc > baseline student acc. Distilled student acc > 0.82."
+            }
+        },
+        {
+            "series": "Contrastive Learning",
+            "level": 3,
+            "id": "simclr_lvl3_contrastive",
+            "algorithm": "SimCLR Contrastive Learning with Linear Probe",
+            "description": "Self-supervised contrastive pretraining using NT-Xent loss on augmented image pairs, followed by linear probe evaluation to measure representation quality.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "math": "NT-Xent loss: normalized temperature-scaled cross entropy over cosine similarity matrix of positive and negative pairs.",
+                "data": "FashionMNIST. Contrastive augmentations: RandomResizedCrop, HorizontalFlip, Rotation.",
+                "implementation": "CNN encoder with projection head. Freeze encoder for linear probe. Compare pretrained vs random encoder.",
+                "validation": "Pretrained probe acc > random probe acc + 0.05. Pretrained probe acc > 0.65. Contrastive loss decreases."
+            }
+        },
+        {
+            "series": "Learning Rate Scheduling",
+            "level": 3,
+            "id": "sched_lvl3_cosine_warmup",
+            "algorithm": "Cosine Annealing with Warmup LR Schedule",
+            "description": "Compare fixed LR, cosine annealing, and warmup+cosine annealing schedules on the same CNN architecture to demonstrate the benefit of LR scheduling.",
+            "interface_protocol": "pytorch_task_v1",
+            "requirements": {
+                "math": "Cosine annealing: lr(t) = lr_min + 0.5*(lr_max-lr_min)*(1+cos(pi*t/T)). Linear warmup ramps LR from 0 to lr_max over first 5% of steps.",
+                "data": "FashionMNIST. Same dataset for all 3 runs.",
+                "implementation": "Manual scheduler classes (no built-in PyTorch schedulers). SGD with momentum. Seed reset between runs for fair comparison.",
+                "validation": "Warmup+cosine acc >= fixed LR acc. All runs > 0.80 acc. Cosine/warmup final LR near zero."
+            }
         }
     ]
 }
